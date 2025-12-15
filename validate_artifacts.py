@@ -2,6 +2,7 @@ import os
 import sys
 
 FEATURE_DIR = "generated/features"
+STEPS_FILE = "generated/steps/CancelOrderSteps.java"
 
 def fail(msg):
     print(f"VALIDATION FAILED: {msg}")
@@ -56,11 +57,33 @@ def validate_feature_file(path):
                 f"1 Given, 1 When, 1 Then"
             )
 
+def validate_step_definitions():
+    if not os.path.exists(STEPS_FILE):
+        fail(f"Missing step definition file: {STEPS_FILE}")
+
+    with open(STEPS_FILE, "r", encoding="utf-8") as f:
+        src = f.read()
+
+    given = src.count("@Given(")
+    when = src.count("@When(")
+    then = src.count("@Then(")
+
+    if given != 1 or when != 1 or then != 1:
+        fail(
+            f"{STEPS_FILE}: Must contain exactly 1 @Given, 1 @When, 1 @Then. "
+            f"Found Given={given}, When={when}, Then={then}"
+        )
+
 def main():
+    if not os.path.isdir(FEATURE_DIR):
+        fail(f"Missing directory: {FEATURE_DIR}")
+
     for root, _, files in os.walk(FEATURE_DIR):
         for file in files:
             if file.endswith(".feature"):
                 validate_feature_file(os.path.join(root, file))
+
+    validate_step_definitions()
 
     print("VALIDATION PASSED")
 
