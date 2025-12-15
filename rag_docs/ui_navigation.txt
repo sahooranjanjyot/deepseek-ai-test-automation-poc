@@ -1,0 +1,4 @@
+UI Navigation:
+- Home Page → My Account menu → Order History
+- Order History page lists orders with Order ID as clickable link.
+- Order Details page contains Cancel Order button if order is cancellable.

@@ -1,0 +1,5 @@
+Order Cancellation Rules:
+- Orders in Pending or Processing state can be cancelled.
+- Orders in Shipped or Delivered state cannot be cancelled.
+- If payment is authorized but not captured, authorization must be voided.
+- If payment is captured, refund process must be initiated.

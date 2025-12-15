@@ -1,0 +1,63 @@
+{
+  "test_id": "TC_CANCEL_ORDER_001",
+  "title": "Cancel an order and ensure customer is not charged",
+  "preconditions": [
+    "User is logged in",
+    "User has at least one cancellable order",
+    "Order payment status is Pending or Authorized"
+  ],
+  "steps": [
+    {
+      "step_no": 1,
+      "navigation": {
+        "from_page": "Home Page",
+        "action": "Click",
+        "ui_element": "Account menu → Order History"
+      },
+      "action": "Navigate to Order History",
+      "expected_result": "Order History page is displayed with list of orders"
+    },
+    {
+      "step_no": 2,
+      "navigation": {
+        "from_page": "Order History Page",
+        "action": "Click",
+        "ui_element": "Order ID link for a cancellable order"
+      },
+      "action": "Open Order Details page",
+      "expected_result": "Order Details page is displayed"
+    },
+    {
+      "step_no": 3,
+      "navigation": {
+        "from_page": "Order Details Page",
+        "action": "Click",
+        "ui_element": "Cancel Order button"
+      },
+      "action": "Initiate order cancellation",
+      "expected_result": "Cancellation confirmation dialog is displayed"
+    },
+    {
+      "step_no": 4,
+      "navigation": {
+        "from_page": "Cancellation Confirmation Dialog",
+        "action": "Click",
+        "ui_element": "Confirm Cancellation button"
+      },
+      "action": "Confirm cancellation",
+      "expected_result": "Order status is updated to Cancelled"
+    }
+  ],
+  "postconditions": [
+    "Order status is Cancelled",
+    "Payment authorization is voided",
+    "No charge is applied to the customer"
+  ],
+  "test_data": {
+    "user_role": "Registered Customer",
+    "order_status": "Pending",
+    "payment_method": "Credit Card"
+  },
+  "automation_eligibility": "Yes",
+  "notes": "Payment validation may require API or DB verification"
+}
