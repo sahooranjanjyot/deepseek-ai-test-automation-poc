@@ -22,7 +22,7 @@ public class OrderDetailsPage {
         cancelOrderButton.click();
     }
 
-    public void confirmCancellation() {
+    public void clickConfirmCancellation() {
         WebElement confirmCancellationButton = driver.findElement(confirmCancellationButtonLocator);
         confirmCancellationButton.click();
     }
