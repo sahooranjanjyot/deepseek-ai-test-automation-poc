@@ -17,7 +17,7 @@ public class OrderDetailsPage {
     }
 
     // Methods
-    public void cancelOrder() {
+    public void clickCancelOrder() {
         WebElement cancelOrderButton = driver.findElement(cancelOrderButtonLocator);
         cancelOrderButton.click();
     }
