@@ -1,63 +1,67 @@
 package steps;
 
 import io.cucumber.java.en.Given;
-import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
+import io.cucumber.java.en.Then;
 
 public class CancelOrderSteps {
 
-    @Given("User is logged in")
-    public void user_is_logged_in() {
-        // TODO: Implement user login functionality
+    @Given("the customer is logged in and has a paid order")
+    public void customer_is_logged_in_and_has_paid_order() {
+        loginUser();
+        ensureUserHasCancellableOrder();
+        ensureOrderPaymentStatusIsPaidOrAuthorized();
     }
 
-    @Given("User has at least one cancellable order")
-    public void user_has_at_least_one_cancellable_order() {
-        // TODO: Verify user has at least one order that can be cancelled
+    @When("the customer cancels the order from order history")
+    public void customer_cancels_order_from_order_history() {
+        navigateToOrderHistory();
+        openOrderDetails();
+        initiateOrderCancellation();
+        confirmCancellation();
     }
 
-    @Given("Order payment status is Pending or Authorized")
-    public void order_payment_status_is_pending_or_authorized() {
-        // TODO: Verify order payment status is Pending or Authorized
+    @Then("the order is cancelled and a confirmation message is shown")
+    public void order_is_cancelled_and_confirmation_is_shown() {
+        verifyCancellationConfirmationDialog();
+        verifyOrderStatusIsCancelled();
     }
 
-    @When("User navigates to Order History")
-    public void user_navigates_to_order_history() {
-        // TODO: Navigate to Order History page
+    /* ---------- Granular helper methods (internal orchestration) ---------- */
+
+    private void loginUser() {
+        // TODO: Implement user login
     }
 
-    @Then("Order History page is displayed with list of orders")
-    public void order_history_page_is_displayed_with_list_of_orders() {
-        // TODO: Verify Order History page is displayed with list of orders
+    private void ensureUserHasCancellableOrder() {
+        // TODO: Ensure at least one cancellable order exists
     }
 
-    @When("User opens Order Details page")
-    public void user_opens_order_details_page() {
-        // TODO: Open Order Details page for a specific order
+    private void ensureOrderPaymentStatusIsPaidOrAuthorized() {
+        // TODO: Verify payment status
     }
 
-    @Then("Order Details page is displayed")
-    public void order_details_page_is_displayed() {
-        // TODO: Verify Order Details page is displayed
+    private void navigateToOrderHistory() {
+        // TODO: Navigate to order history page
     }
 
-    @When("User initiates order cancellation")
-    public void user_initiates_order_cancellation() {
-        // TODO: Initiate order cancellation
+    private void openOrderDetails() {
+        // TODO: Open specific order details
     }
 
-    @Then("Cancellation confirmation dialog is displayed")
-    public void cancellation_confirmation_dialog_is_displayed() {
-        // TODO: Verify Cancellation confirmation dialog is displayed
+    private void initiateOrderCancellation() {
+        // TODO: Click cancel order
     }
 
-    @When("User confirms cancellation")
-    public void user_confirms_cancellation() {
-        // TODO: Confirm order cancellation
+    private void confirmCancellation() {
+        // TODO: Confirm cancellation
     }
 
-    @Then("Order status is updated to Cancelled")
-    public void order_status_is_updated_to_cancelled() {
-        // TODO: Verify order status is updated to Cancelled
+    private void verifyCancellationConfirmationDialog() {
+        // TODO: Verify confirmation dialog
+    }
+
+    private void verifyOrderStatusIsCancelled() {
+        // TODO: Verify order status is cancelled
     }
 }
