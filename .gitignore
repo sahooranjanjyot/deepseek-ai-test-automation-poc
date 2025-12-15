@@ -5,7 +5,7 @@ llm_generate.py
 llm_generate_*.py
 tools/llm/
 llm/
-
+rag_context_provider.py
 # =========================
 # Generated artifacts
 # =========================
