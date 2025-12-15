@@ -26,4 +26,5 @@ if __name__ == "__main__":
         print('Usage: python rag_retrieve.py "your question" [k]')
         sys.exit(1)
 
+
     print(get_context(query, k))
