@@ -8,9 +8,8 @@ on:
 jobs:
   validate:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@v4
 
       - name: Set up Python
@@ -18,9 +17,10 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Install dependencies
+      - name: Install deps
         run: |
-          pip install requests sentence-transformers faiss-cpu
+          python -m pip install --upgrade pip
+          pip install requests
 
       - name: Validate generated artifacts
         run: |

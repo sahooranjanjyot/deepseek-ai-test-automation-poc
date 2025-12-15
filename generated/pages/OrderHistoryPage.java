@@ -1,4 +1,3 @@
- ```java
 package pages;
 
 import org.openqa.selenium.By;
@@ -11,24 +10,27 @@ import java.util.List;
 
 public class OrderHistoryPage {
     private WebDriver driver;
-    private By orderHistoryTable = By.id("orderHistoryTable");
-    private By orderRows = By.cssSelector("#orderHistoryTable tbody tr");
-    private By orderIdLinks = By.cssSelector("#orderHistoryTable tbody tr td:first-child a");
+    private WebDriverWait wait;
+
+    // TODO: Define locators
+    private By orderHistoryTable = By.id("order-history-table");
+    private By orderIdLinks = By.cssSelector("#order-history-table a[href*='/order/']");
 
     public OrderHistoryPage(WebDriver driver) {
         this.driver = driver;
+        this.wait = new WebDriverWait(driver, 10);
     }
 
-    public void navigateToOrderHistory() {
-        // TODO: Click on Account menu and then click on Order History
-    }
-
-    public void openOrderDetailsPage(int orderIndex) {
-        List<WebElement> rows = driver.findElements(orderRows);
-        if (orderIndex < 0 || orderIndex >= rows.size()) {
+    public void navigateToOrderDetails(int orderIndex) {
+        List<WebElement> orderLinks = driver.findElements(orderIdLinks);
+        if (orderLinks.size() > orderIndex) {
+            orderLinks.get(orderIndex).click();
+        } else {
             throw new IndexOutOfBoundsException("Order index out of bounds");
         }
-        rows.get(orderIndex).findElements(orderIdLinks).get(0).click();
+    }
+
+    public boolean isOrderHistoryDisplayed() {
+        return driver.findElement(orderHistoryTable).isDisplayed();
     }
 }
-```
