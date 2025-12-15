@@ -40,4 +40,4 @@ venv/
 .vscode/
 .idea/
 .DS_Store
-Thumbs.db
+Thumbs.dbrag_context_provider.py
