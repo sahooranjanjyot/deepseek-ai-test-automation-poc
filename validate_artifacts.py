@@ -1,8 +1,10 @@
 import os
 import sys
+import re
 
 FEATURE_DIR = "generated/features"
 STEPS_FILE = "generated/steps/CancelOrderSteps.java"
+PAGES_DIR = "generated/pages"
 
 def fail(msg):
     print(f"VALIDATION FAILED: {msg}")
@@ -22,7 +24,7 @@ def validate_feature_file(path):
     if not non_empty or not non_empty[0].startswith("Feature:"):
         fail(f"{path} must start with 'Feature:'")
 
-    # Enforce 1 Given, 1 When, 1 Then per scenario
+    # Enforce exactly 1 Given / When / Then
     scenario_blocks = []
     current = []
 
@@ -74,6 +76,46 @@ def validate_step_definitions():
             f"Found Given={given}, When={when}, Then={then}"
         )
 
+def validate_pages_atomic():
+    if not os.path.isdir(PAGES_DIR):
+        fail(f"Missing directory: {PAGES_DIR}")
+
+    allowed_prefixes = (
+        "click", "select", "enter", "type", "set", "fill",
+        "open", "navigate", "goTo", "wait",
+        "get", "is", "has",
+        "verify", "assert"
+    )
+
+    forbidden_tokens = (
+        "io.cucumber",
+        "@Given", "@When", "@Then",
+        "import io.cucumber"
+    )
+
+    method_re = re.compile(r"public\s+[\w\<\>\[\]]+\s+([A-Za-z_]\w*)\s*\(")
+
+    for root, _, files in os.walk(PAGES_DIR):
+        for file in files:
+            if not file.endswith(".java"):
+                continue
+
+            path = os.path.join(root, file)
+            with open(path, "r", encoding="utf-8") as f:
+                src = f.read()
+
+            for tok in forbidden_tokens:
+                if tok in src:
+                    fail(f"{path}: Page Objects must not contain Cucumber annotations")
+
+            for m in method_re.finditer(src):
+                name = m.group(1)
+                if not name.startswith(allowed_prefixes):
+                    fail(
+                        f"{path}: Non-atomic public method '{name}'. "
+                        f"Allowed prefixes: {', '.join(allowed_prefixes)}"
+                    )
+
 def main():
     if not os.path.isdir(FEATURE_DIR):
         fail(f"Missing directory: {FEATURE_DIR}")
@@ -84,6 +126,7 @@ def main():
                 validate_feature_file(os.path.join(root, file))
 
     validate_step_definitions()
+    validate_pages_atomic()
 
     print("VALIDATION PASSED")
 
