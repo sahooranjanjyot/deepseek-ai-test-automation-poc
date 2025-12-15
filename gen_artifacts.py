@@ -26,12 +26,17 @@ with open("testcases/cancel_order.json") as f:
 Path("generated/features").mkdir(parents=True, exist_ok=True)
 
 prompt = f"""
-Generate a complete Gherkin feature file for this test case.
-Rules:
-- MUST start with a line: Feature: <something>
-- Include exactly one Scenario
-- Include at least one Then step
-- No markdown fences
+Generate a Gherkin feature file.
+
+STRICT REQUIREMENTS (DO NOT VIOLATE):
+1) Output MUST be a valid .feature file starting with: Feature:
+2) For EACH scenario, use EXACTLY 3 step lines only:
+   - one Given
+   - one When
+   - one Then
+3) DO NOT use And or But anywhere.
+4) Keep steps BUSINESS-CENTRIC (intent), not UI mechanics.
+5) Output ONLY the feature file text. No markdown. No explanations.
 
 Test case JSON:
 {json.dumps(test_case, indent=2)}
