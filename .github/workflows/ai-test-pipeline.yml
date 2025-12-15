@@ -23,12 +23,6 @@ jobs:
           python -m pip install --upgrade pip
           pip install requests
 
-      - name: Generate artifacts (Feature/Steps/Pages)
-        run: |
-          python gen_artifacts.py
-          python gen_steps.py
-          python gen_pages.py
-
       - name: Validate generated artifacts
         run: |
           python validate_artifacts.py
