@@ -1,3 +1,43 @@
+# =========================
+# Local-only LLM generators
+# =========================
+llm_generate.py
+llm_generate_*.py
+tools/llm/
+llm/
 
+# =========================
+# Generated artifacts
+# =========================
+generated/
+generated/**
+
+# =========================
+# RAG runtime artifacts
+# =========================
+rag.index
+rag_sources.pkl
+rag_docs/
+
+# =========================
+# Local experiments / scratch
+# =========================
+*.local.py
+*.scratch.py
+*.tmp
+
+# =========================
+# Python / venv
+# =========================
 __pycache__/
 *.pyc
+.venv/
+venv/
+
+# =========================
+# OS / IDE noise
+# =========================
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
