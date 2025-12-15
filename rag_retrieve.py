@@ -19,8 +19,6 @@ def get_context(query, k=2):
     return "\n\n---\n\n".join(context)
 
 if __name__ == "__main__":
-    # Usage:
-    # python rag_retrieve.py "your question" 2
     query = sys.argv[1] if len(sys.argv) > 1 else ""
     k = int(sys.argv[2]) if len(sys.argv) > 2 else 2
 
