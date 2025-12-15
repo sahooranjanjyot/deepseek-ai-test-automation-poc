@@ -20,7 +20,7 @@ public class CancellationConfirmationDialog {
     }
 
     // Method to confirm cancellation
-    public void confirmCancellation() {
+    public void clickConfirmCancellation() {
         WebElement confirmCancellationButton = wait.until(ExpectedConditions.elementToBeClickable(confirmCancellationButtonLocator));
         confirmCancellationButton.click();
     }
