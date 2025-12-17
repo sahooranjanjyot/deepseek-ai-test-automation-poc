@@ -51,4 +51,6 @@ Thumbs.db
 # Local experiments / scratch
 ########################################
 .scratch.py
-.tmp
+.tmprag_index 
+__pycache__/ 
+*.pyc 

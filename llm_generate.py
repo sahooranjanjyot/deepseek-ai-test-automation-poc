@@ -8,6 +8,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from urllib import request as urlrequest
 from urllib.error import HTTPError, URLError
+from rag.retrieve import retrieve
+
 
 # =========================
 # Production Constants
@@ -323,6 +325,7 @@ def maybe_warn_or_rebuild_rag(docs_fingerprint: str) -> None:
 # =========================
 # LLM call
 # =========================
+
 def call_llm(prompt: str, task: str) -> str:
     from tools.llm.env_loader import load_env_local
     from tools.llm.local_client import local_chat
@@ -394,6 +397,15 @@ if __name__ == "__main__":
         usage_exit()
 
     task = sys.argv[1].strip()
+    rag_results = retrieve(task, top_k=3)
+    print("RAG_SAMPLE:", rag_results[0])
+    rag_context = "\n".join(
+    [f"[{r['doc']}#{r['chunk']}] {r['content']}" for r in rag_results]
+    )
+    print("FAISS_RAG_CONTEXT_LEN:", len(rag_context))
+    if not rag_context.strip():
+        raise SystemExit("RAG_EMPTY: rebuild index or check rag_docs")
+
 
     ensure_env()
 
@@ -408,6 +420,9 @@ if __name__ == "__main__":
     rag_context_hash = sha256(rag_context) if rag_context else "EMPTY"
 
     prompt = f"""
+    RAG CONTEXT:
+    {rag_context}
+
 SYSTEM:
 You are a STRICT Gherkin test automation generator.
 
@@ -452,6 +467,26 @@ Return ONLY the 5 lines, nothing else.
     feature_path = write_feature(normalized, feature_name)
     page_path = write_page_object(class_base)
     steps_path = write_steps(class_base)
+    rag_available = len(rag_context.strip()) > 0
+    rag_context = "\n".join(
+    [f"[{r['doc']}#{r['chunk']}] {r.get('content','')}" for r in rag_results]
+)
+    rag_available = len(rag_context.strip()) > 0
+    rag_context_hash = (
+    hashlib.sha256(rag_context.encode("utf-8")).hexdigest()
+    if rag_available else "EMPTY"
+)
+
+    print("RAG_AVAILABLE:", rag_available)
+    print("RAG_CONTEXT_LEN:", len(rag_context))
+    print("RAG_CONTEXT_HASH:", rag_context_hash)
+    
+    
+    print("RAG_TOPK_DOCS:", [f"{r['doc']}#{r['chunk']}" for r in rag_results])
+    rag_context_len = len(rag_context)
+    rag_context_hash = hashlib.sha256(rag_context.encode("utf-8")).hexdigest() if rag_available else "EMPTY"
+    rag_topk_docs = [f"{r['doc']}#{r['chunk']}" for r in rag_results]
+
 
     meta = {
         "timestamp_utc": datetime.now(timezone.utc).isoformat(),
@@ -468,14 +503,18 @@ Return ONLY the 5 lines, nothing else.
         "rag_docs_fingerprint": docs_fingerprint,
         "local_llm_base_url": os.getenv("LOCAL_LLM_BASE_URL", ""),
         "local_llm_model": os.getenv("LOCAL_LLM_MODEL", DEFAULT_MODEL),
+        "rag": {
+            "enabled": True,
+            "context_len": len(rag_context),
+            "top_k": 3,
+            "docs": [f"{r['doc']}#{r['chunk']}" for r in rag_results]
+}
+
     }
     write_meta(meta)
 
     print("PROMPT_VERSION:", PROMPT_VERSION)
     print("CONTRACT_CHECKSUM:", contract_checksum)
-    print("RAG_AVAILABLE:", RAG_AVAILABLE)
-    print("RAG_CONTEXT_LEN:", len(rag_context))
-    print("RAG_CONTEXT_HASH:", rag_context_hash)
     print("RAG_DOCS_FINGERPRINT:", docs_fingerprint)
     print("TASK:", task)
     print("FEATURE_NAME:", feature_name)
