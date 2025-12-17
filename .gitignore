@@ -17,3 +17,8 @@ torch_cache/
 # Large base models (never commit)
 *.safetensors
 !lora/out/adapter/*.safetensors
+
+# QLoRA intermediate artifacts
+lora/data/*.broken
+lora/out/adapter/checkpoint-*/
+lora/out/adapter/training_args.bin
