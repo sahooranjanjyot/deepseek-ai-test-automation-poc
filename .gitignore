@@ -9,9 +9,8 @@ lora-venv/
 .cache/
 .huggingface/
 torch_cache/
-
-
 .DS_Store
+
 
 *.safetensors
 !lora/out/adapter/*.safetensors
@@ -21,11 +20,27 @@ lora/data/*.broken
 lora/out/adapter/checkpoint-*/
 lora/out/adapter/training_args.bin
 
+
 .scratch.py
-.tmprag_index 
-__pycache__/ 
-*.pyc
+.tmprag_index
+tmpraag_index
+
+
+generated/
+
+
+.env
+.env.local
+
+
+rag_contracts.sha256
+rag_sources.pkl
+
 
 sentence_transformers/
 importSentenceTransformer/
-r/
+
+SentenceTransformer
+import
+r""from
+sentence_transformers
