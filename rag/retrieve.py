@@ -1,27 +1,58 @@
-import faiss, pickle
+# rag/retrieve.py
+from pathlib import Path
+from typing import List, Dict, Any
+
+import faiss
 from sentence_transformers import SentenceTransformer
 
-INDEX_DIR = "rag_index"
-MODEL = "sentence-transformers/all-MiniLM-L6-v2"
 
-model = SentenceTransformer(MODEL)
-index = faiss.read_index(f"{INDEX_DIR}/index.faiss")
-meta = pickle.load(open(f"{INDEX_DIR}/meta.pkl", "rb"))
+REPO_ROOT = Path(__file__).resolve().parents[1]
 
-def retrieve(query: str, top_k: int = 5):
-    q_emb = model.encode([query])
-    scores, ids = index.search(q_emb, top_k)
+# EXACT files produced by rag_build.py
+INDEX_FILE = REPO_ROOT / "rag_index"
+SOURCES_FILE = REPO_ROOT / "rag_sources.pkl"
+RAG_DOCS_DIR = REPO_ROOT / "rag_docs"
+
+EMBED_MODEL = "all-MiniLM-L6-v2"
+
+
+def retrieve(query: str, top_k: int = 3) -> List[Dict[str, Any]]:
+    if not INDEX_FILE.exists():
+        raise FileNotFoundError(f"Missing FAISS index file: {INDEX_FILE}")
+
+    if not SOURCES_FILE.exists():
+        raise FileNotFoundError(f"Missing sources file: {SOURCES_FILE}")
+
+    # Load index
+    index = faiss.read_index(str(INDEX_FILE))
+
+    # Load sources
+    import pickle
+    sources: List[str] = pickle.loads(SOURCES_FILE.read_bytes())
+
+    # Embed query
+    model = SentenceTransformer(EMBED_MODEL)
+    qvec = model.encode([query], convert_to_numpy=True)
+
+    k = min(top_k, len(sources))
+    distances, ids = index.search(qvec, k)
 
     results = []
-    for score, idx in zip(scores[0], ids[0]):
-        m = meta[idx]
-        results.append({
-            "score": float(score),
-            "doc": m["doc"],
-            "chunk": m["chunk"],
-            "content": m.get("text", "")
-        })
-    return results
+    for rank, idx in enumerate(ids[0]):
+        doc_name = sources[idx]
+        doc_path = RAG_DOCS_DIR / doc_name
 
-if __name__ == "__main__":
-    print(retrieve("order cancellation", top_k=5))
+        content = (
+            doc_path.read_text(encoding="utf-8", errors="ignore")
+            if doc_path.exists()
+            else f"[MISSING_DOC] {doc_name}"
+        )
+
+        results.append({
+            "doc": doc_name,
+            "chunk": 0,
+            "content": content,
+            "score": float(distances[0][rank]),
+        })
+
+    return results
