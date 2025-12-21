@@ -1,24 +1,31 @@
-# Python
+
 __pycache__/
 *.pyc
 
-# Virtual environments
 venv/
 lora-venv/
 
-# HuggingFace / Torch cache
+
 .cache/
 .huggingface/
 torch_cache/
 
-# OS
+
 .DS_Store
 
-# Large base models (never commit)
 *.safetensors
 !lora/out/adapter/*.safetensors
 
-# QLoRA intermediate artifacts
+
 lora/data/*.broken
 lora/out/adapter/checkpoint-*/
 lora/out/adapter/training_args.bin
+
+.scratch.py
+.tmprag_index 
+__pycache__/ 
+*.pyc
+
+sentence_transformers/
+importSentenceTransformer/
+r/
