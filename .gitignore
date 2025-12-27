@@ -43,4 +43,4 @@ importSentenceTransformer/
 SentenceTransformer
 import
 r""from
-sentence_transformers
+sentence_transformersgenerated/
