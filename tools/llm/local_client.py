@@ -32,7 +32,6 @@ def _normalize_base_url(raw: str) -> str:
     if not raw:
         return ""
 
-    # If user already provided /v1 or /v1/ keep it exactly once
     if raw.endswith("/v1"):
         return raw
     if raw.endswith("/v1/"):
@@ -50,7 +49,6 @@ def _api_key() -> str:
 
 
 def _headers() -> Dict[str, str]:
-    # Cloudflare / proxies can block python default UA; set a normal UA.
     h = {
         "Content-Type": "application/json",
         "Accept": "application/json",
@@ -71,7 +69,6 @@ def _url(path: str) -> str:
 
 
 def _raise_http_error(resp: requests.Response, url: str) -> None:
-    # show a short snippet for quick debugging
     try:
         txt = resp.text or ""
     except Exception:
@@ -83,10 +80,6 @@ def _raise_http_error(resp: requests.Response, url: str) -> None:
 
 
 def list_models(timeout: float = DEFAULT_TIMEOUT_SECS, retries: int = DEFAULT_RETRIES) -> List[Dict[str, Any]]:
-    """
-    Calls: GET /v1/models
-    Returns list of model dicts (OpenAI-compatible)
-    """
     url = _url("models")
     if not url:
         raise RuntimeError("LOCAL_LLM_NOT_CONFIGURED: LOCAL_LLM_BASE_URL is empty")
@@ -106,12 +99,11 @@ def list_models(timeout: float = DEFAULT_TIMEOUT_SECS, retries: int = DEFAULT_RE
             else:
                 raise
 
-    # should never reach
     raise last_err or RuntimeError("LOCAL_LLM_UNKNOWN_ERROR")
 
 
-def chat_completion(
-    messages: Union[str, List[Dict[str, str]]],
+def _completion(
+    prompt: str,
     model: Optional[str] = None,
     temperature: float = 0.0,
     max_tokens: int = 512,
@@ -119,19 +111,14 @@ def chat_completion(
     retries: int = DEFAULT_RETRIES,
 ) -> str:
     """
-    Calls vLLM OpenAI-compatible endpoint:
-      POST /v1/chat/completions
+    Calls OpenAI-compatible endpoint:
+      POST /v1/completions
 
-    Returns assistant message content as a string.
+    Returns text as a string.
     """
-    url = _url("chat/completions")
+    url = _url("completions")
     if not url:
         raise RuntimeError("LOCAL_LLM_NOT_CONFIGURED: LOCAL_LLM_BASE_URL is empty")
-
-    if isinstance(messages, str):
-        msgs = [{"role": "user", "content": messages}]
-    else:
-        msgs = messages
 
     use_model = (model or os.getenv("LOCAL_LLM_MODEL", "")).strip()
     if not use_model:
@@ -139,7 +126,7 @@ def chat_completion(
 
     payload: Dict[str, Any] = {
         "model": use_model,
-        "messages": msgs,
+        "prompt": prompt,
         "temperature": temperature,
         "max_tokens": max_tokens,
     }
@@ -152,7 +139,70 @@ def chat_completion(
                 _raise_http_error(r, url)
 
             j = r.json()
-            # OpenAI-compatible shape: choices[0].message.content
+            # OpenAI-compatible shape: choices[0].text
+            try:
+                return j["choices"][0]["text"]
+            except Exception:
+                compact = json.dumps(j, ensure_ascii=False)[:2000]
+                raise RuntimeError(f"LOCAL_LLM_BAD_RESPONSE\nURL: {url}\nRESPONSE:\n{compact}")
+        except Exception as e:
+            last_err = e
+            if attempt < retries:
+                time.sleep(0.6 * (attempt + 1))
+            else:
+                raise
+
+    raise last_err or RuntimeError("LOCAL_LLM_UNKNOWN_ERROR")
+
+
+def chat_completion(
+    messages: Union[str, List[Dict[str, str]]],
+    model: Optional[str] = None,
+    temperature: float = 0.0,
+    max_tokens: int = 512,
+    timeout: float = DEFAULT_TIMEOUT_SECS,
+    retries: int = DEFAULT_RETRIES,
+) -> str:
+    """
+    If caller passes a STRING prompt (your llm_generate.py does),
+    we use /v1/completions to avoid chat_template issues.
+
+    If caller passes structured messages, we call /v1/chat/completions.
+    """
+    # ✅ Key change: string prompts go to /completions (no chat_template needed)
+    if isinstance(messages, str):
+        return _completion(
+            prompt=messages,
+            model=model,
+            temperature=temperature,
+            max_tokens=max_tokens,
+            timeout=timeout,
+            retries=retries,
+        )
+
+    url = _url("chat/completions")
+    if not url:
+        raise RuntimeError("LOCAL_LLM_NOT_CONFIGURED: LOCAL_LLM_BASE_URL is empty")
+
+    use_model = (model or os.getenv("LOCAL_LLM_MODEL", "")).strip()
+    if not use_model:
+        raise RuntimeError("LOCAL_LLM_NOT_CONFIGURED: LOCAL_LLM_MODEL is empty")
+
+    payload: Dict[str, Any] = {
+        "model": use_model,
+        "messages": messages,
+        "temperature": temperature,
+        "max_tokens": max_tokens,
+    }
+
+    last_err: Optional[Exception] = None
+    for attempt in range(retries + 1):
+        try:
+            r = requests.post(url, headers=_headers(), data=json.dumps(payload), timeout=timeout)
+            if r.status_code != 200:
+                _raise_http_error(r, url)
+
+            j = r.json()
             try:
                 return j["choices"][0]["message"]["content"]
             except Exception:
