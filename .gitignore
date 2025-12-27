@@ -44,3 +44,4 @@ SentenceTransformer
 import
 r""from
 sentence_transformersgenerated/
+.venv/
